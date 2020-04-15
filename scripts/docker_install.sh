@@ -18,6 +18,9 @@ set -euxo pipefail
 
 run_deps=$(cat <<EOF
 qemu-user-static
+libgl1
+libglib2.0-0
+libqt5gui5
 libvncserver-dev
 EOF
 )

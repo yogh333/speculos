@@ -9,6 +9,9 @@ RUN pipenv install --deploy --system
 
 RUN apt-get update && apt-get install -qy \
     qemu-user-static \
+    libgl1 \
+    libglib2.0-0 \
+    libqt5gui5 \
     libvncserver-dev \
     && apt-get clean
 

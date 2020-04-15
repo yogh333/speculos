@@ -7,13 +7,10 @@ Pull the latest image from
 docker pull ledgerhq/speculos
 ```
 
-And run the image with a few arguments:
+And launch the Docker image:
 
-```shell
-docker run -v $(pwd)/apps:/speculos/apps --publish 5900:5900 -it ledgerhq/speculos --display headless --vnc-port 5900 apps/btc.elf
-```
+- With X11: `./scripts/docker_x11.sh apps/btc.elf`
+- With VNC: `./scripts/docker_vnc.sh apps/btc.elf`
 
-- The app folder (here `$(pwd)/apps/`) is mounted thanks to `-v`
-- The VNC server is available from the host thanks to `--publish`
-
-The image can obviously run an interactive shell with `--entrypoint /bin/bash`.
+The image can obviously run an interactive shell by adding
+`--entrypoint /bin/bash` to the Docker command-line.
