@@ -23,6 +23,7 @@
 
 #include "cursor.h"
 
+#define DEBUG_SANDBOX
 #ifndef DISABLE_SANDBOX
 #include "seccomp-bpf.h"
 #endif
@@ -183,6 +184,29 @@ static int parse_size(char *s, unsigned int *new_width, unsigned int *new_height
     return sscanf(s, "%ux%u", new_width, new_height) != 2;
 }
 
+#if !defined DISABLE_SANDBOX && defined DEBUG_SANDBOX
+static void sigsys_handler(int nr, siginfo_t *info, void *void_context)
+{
+	unsigned int syscall;
+	ucontext_t *ctx;
+
+	if (info->si_code != SYS_SECCOMP) {
+		return;
+	}
+
+	ctx = (ucontext_t *)(void_context);
+	if (ctx == NULL) {
+		return;
+	}
+
+	syscall = ctx->uc_mcontext.gregs[0];
+    fprintf(stderr, "vnc: forbidden syscall (%u) in seccomp filter\n",
+        syscall);
+
+	_exit(1);
+}
+#endif
+
 static int load_seccomp(void)
 {
 #ifndef DISABLE_SANDBOX
@@ -218,8 +242,33 @@ static int load_seccomp(void)
         ALLOW_SYSCALL(stat),
         ALLOW_SYSCALL(uname),
         ALLOW_SYSCALL(write),
+#ifndef DEBUG_SANDBOX
         KILL_PROCESS,
+#else
+        BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_TRAP),
+#endif
     };
+
+#ifdef DEBUG_SANDBOX
+	struct sigaction act;
+	sigset_t mask;
+
+	memset(&act, 0, sizeof(act));
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGSYS);
+
+	act.sa_sigaction = &sigsys_handler;
+	act.sa_flags = SA_SIGINFO;
+	if (sigaction(SIGSYS, &act, NULL) < 0) {
+		warn("sigaction(SIGSYS)");
+		return -1;
+	}
+
+	if (sigprocmask(SIG_UNBLOCK, &mask, NULL)) {
+		warn("sigprocmask(SIG_UNBLOCK)");
+		return -1;
+	}
+#endif
 
     struct sock_fprog prog = {
         .len = (unsigned short)(sizeof(filter)/sizeof(filter[0])),
