@@ -223,11 +223,67 @@ cx_curve_twisted_edward_t const C_cx_Ed25519 = {
     (unsigned char*)C_cx_Ed25519_Qplus3div8,
 };
 
+
+#define C_cx_Curve25519_h 8
+
+
+static unsigned char const C_cx_Curve25519_p[]  = {
+    //q:  0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed
+    0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xed};
+
+static unsigned char const C_cx_Curve25519_Hp[]  = {
+    //Hq: 0x00000000000000000000000000000000000000000000000000000000000005a4
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0xa4};
+
+static unsigned char const C_cx_Curve25519_uG[]  = {
+    0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+static unsigned char const C_cx_Curve25519_vG[]  = {
+    0x20, 0xAE, 0x19, 0xA1, 0xB8, 0xA0, 0x86, 0xB4, 0xE0, 0x1E, 0xDD, 0x2C, 0x77, 0x48, 0xD1, 0x4C, 
+    0x92, 0x3D, 0x4D, 0x7E, 0x6D, 0x7C, 0x61, 0xB2, 0x29, 0xE9, 0xC5, 0xA2, 0x7E, 0xCE, 0xD3, 0xD9};
+    
+static unsigned char const C_cx_Curve25519_n[]  = {
+    //n:  0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
+    0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x14, 0xDE, 0xF9, 0xDE, 0xA2, 0xF7, 0x9C, 0xD6, 0x58, 0x12, 0x63, 0x1A, 0x5C, 0xF5, 0xD3, 0xED};
+
+static unsigned char const C_cx_Curve25519_Hn[]  = {
+    //Hn: 0x0399411b7c309a3dceec73d217f5be65d00e1ba768859347a40611e3449c0f01
+    0x03, 0x99, 0x41, 0x1b, 0x7c, 0x30, 0x9a, 0x3d, 0xce, 0xec, 0x73, 0xd2, 0x17, 0xf5, 0xbe, 0x65,
+    0xd0, 0x0e, 0x1b, 0xa7, 0x68, 0x85, 0x93, 0x47, 0xa4, 0x06, 0x11, 0xe3, 0x44, 0x9c, 0x0f, 0x01};
+
+
+static unsigned char const C_cx_Curve25519_A[] = {
+  0x76, 0xD, 0x06};
+
+static unsigned char const C_cx_Curve25519_B[] = {
+  0x01};
+
+
+cx_curve_montgomery_t const C_cx_Curve25519 = {
+  CX_CURVE_Curve25519,
+  256, 32,
+  (unsigned char*)C_cx_Curve25519_p,     // Curve field
+  (unsigned char*)C_cx_Curve25519_Hp,    // 
+  (unsigned char*)C_cx_Curve25519_uG,
+  (unsigned char*)C_cx_Curve25519_vG,
+  (unsigned char*)C_cx_Curve25519_n,
+  (unsigned char*)C_cx_Curve25519_Hn,  
+  C_cx_Curve25519_h,
+  (unsigned char*)C_cx_Curve25519_A,                                 // A
+  (unsigned char*)C_cx_Curve25519_B,                                      // B
+};
+
+
 cx_curve_domain_t const * const C_cx_allCurves[]= {
   (const cx_curve_domain_t *)&C_cx_secp256k1,
   (const cx_curve_domain_t *)&C_cx_secp256r1,
   (const cx_curve_domain_t *)&C_cx_secp384r1,
   (const cx_curve_domain_t *)&C_cx_Ed25519,
+  (const cx_curve_domain_t *)&C_cx_Curve25519,
 };
 
 static int nid_from_curve(cx_curve_t curve) {
@@ -275,6 +331,57 @@ int ED25519_verify(const uint8_t *message, size_t message_len,
                    const uint8_t signature[64], const uint8_t public_key[32]);
 void ED25519_public_from_private(uint8_t out_public_key[32],
                                  const uint8_t private_key[32]);
+
+void X25519_public_from_private(uint8_t out_public_value[32],
+                                const uint8_t private_key[32]);
+
+int sys_cx_curve25519_get_public_key(const cx_ecfp_private_key_t *pv_key, cx_md_t hashID, cx_ecfp_public_key_t *pu_key)
+{
+  if (hashID != CX_SHA512) {
+    errx(1, "cx_eddsa_get_public_key: invalid hashId (0x%x)", hashID);
+    return -1;
+  }
+
+  if (pv_key->d_len != 32) {
+    errx(1, "cx_eddsa_get_public_key: invalid key size (0x%x)", pv_key->d_len);
+    return -1;
+  }
+
+   uint8_t k2[32];
+
+  // memcpy(k2, pv_key->d, pv_key->d_len);
+
+  // k2[0] &= 0xf8u;
+  // k2[31] &= 0x7fu;
+  // k2[31] |= 0x40u;
+  
+    memcpy(k2, pv_key->d, 32);
+    be2le(k2, 32);
+
+
+  // // We want to return the public key associated to the private one
+
+  // /*
+  //   u2[31 + 1] &= 0x7fu;
+  //   reverse_buffer(u2 + 1, 32);
+  //   u2[0] = 0x02;
+  // */
+
+  // memcpy(pu_key->W + 1, C_cx_Curve25519_uG, 32);
+  // pu_key->W[31 + 1] &= 0x7fu;
+  // be2le(pu_key->W + 1, 32);
+  // pu_key->W[0] = 0x02;
+  // pu_key->W_len = 33;
+
+  // x25519_scalar_mulx(out, scalar, point);
+  //x25519_scalar_mulx(k2, k2, k2);
+
+  //return sys_cx_ecfp_scalar_mult(CX_CURVE_Curve25519, pu_key->W, pu_key->W_len, k2, 32);
+
+  X25519_public_from_private(pu_key->W, k2);
+  return 0;
+}
+
 
 int sys_cx_eddsa_get_public_key(const cx_ecfp_private_key_t *pv_key, cx_md_t hashID, cx_ecfp_public_key_t *pu_key)
 {
@@ -379,6 +486,12 @@ int sys_cx_ecfp_generate_pair2(cx_curve_t curve,
 
   if (curve == CX_CURVE_Ed25519) {
     return sys_cx_eddsa_get_public_key(private_key, hashID, public_key);
+  } else if (curve == CX_CURVE_Curve25519) {
+
+
+    return sys_cx_curve25519_get_public_key(private_key, hashID, public_key);
+
+
   } else {
     nid = nid_from_curve(curve);
     key = EC_KEY_new_by_curve_name(nid);
@@ -1089,6 +1202,9 @@ int sys_cx_ecfp_scalar_mult(cx_curve_t curve, unsigned char *P, unsigned int P_l
   BN_bin2bn(k, k_len, e);
 
   switch (curve) {
+
+//X25519_public_from_private
+
   case CX_CURVE_Ed25519: {
       if (scalarmult_ed25519(Qx, Qy, Px, Py, e) != 0) {
         errx(1, "cx_ecfp_scalar_mult: scalarmult_ed25519 failed");

@@ -137,6 +137,23 @@ struct cx_curve_twisted_edward_s {
 /** Convenience type. See #cx_curve_twisted_edward_s. */
 typedef struct cx_curve_twisted_edward_s cx_curve_twisted_edward_t;
 
+
+/**
+ * Montgomery curve Bv^2 = u^3 + Au^2 + u
+ * 
+ */
+struct cx_curve_montgomery_s {
+  CX_CURVE_HEADER;
+  /**  A coef */
+  unsigned char *u; 
+  /** B coeff */
+  unsigned char *v;
+};
+
+/** Convenience type. See #cx_curve_montgomery_s. */
+typedef struct cx_curve_montgomery_s cx_curve_montgomery_t;
+
+
 struct cx_curve_domain_s {
   CX_CURVE_HEADER;
 } ;
