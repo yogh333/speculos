@@ -335,6 +335,10 @@ void ED25519_public_from_private(uint8_t out_public_key[32],
 void X25519_public_from_private(uint8_t out_public_value[32],
                                 const uint8_t private_key[32]);
 
+
+int X25519(uint8_t out_shared_key[32], const uint8_t private_key[32],
+           const uint8_t peer_public_value[32]);
+
 int sys_cx_curve25519_get_public_key(const cx_ecfp_private_key_t *pv_key, cx_md_t hashID, cx_ecfp_public_key_t *pu_key)
 {
   if (hashID != CX_SHA512) {
@@ -1183,6 +1187,17 @@ int sys_cx_ecfp_scalar_mult(cx_curve_t curve, unsigned char *P, unsigned int P_l
   BIGNUM *Px, *Py, *Qx, *Qy, *e;
 
   /* TODO: ensure that the point is valid */
+
+  // diry hack
+  if (curve == CX_CURVE_Curve25519) {
+
+    // out, scalar, point
+    // pu_key->W, pu_key->W_len, digest
+    X25519(P, k, P);
+    return 0;
+  }
+
+
 
   if (P_len != 65) {
     errx(1, "cx_ecfp_scalar_mult: invalid P_len (%u)", P_len);
