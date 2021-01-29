@@ -1,0 +1,3 @@
+[tool.black]
+include = '^/(((mcu|tests|tools|)/.*\.py)|speculos.py)$'
+exclude = '^/mcu/bagl_font.py$'
