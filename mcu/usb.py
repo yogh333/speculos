@@ -9,75 +9,84 @@ import binascii
 import enum
 import logging
 
+
 class UsbReq(enum.IntEnum):
-    RECIPIENT_DEVICE  = 0x00
-    SET_ADDRESS       = 0x05
+    RECIPIENT_DEVICE = 0x00
+    SET_ADDRESS = 0x05
     SET_CONFIGURATION = 0x09
 
+
 class SephUsbTag(enum.IntEnum):
-    XFER_SETUP     = 0x01
-    XFER_IN        = 0x02
-    XFER_OUT       = 0x04
-    XFER_EVENT     = 0x10
+    XFER_SETUP = 0x01
+    XFER_IN = 0x02
+    XFER_OUT = 0x04
+    XFER_EVENT = 0x10
     PREPARE_DIR_IN = 0x20
 
+
 class SephUsbConfig(enum.IntEnum):
-    CONNECT    = 0x01
+    CONNECT = 0x01
     DISCONNECT = 0x02
-    ADDR       = 0x03
-    ENDPOINTS  = 0x04
+    ADDR = 0x03
+    ENDPOINTS = 0x04
+
 
 class SephUsbPrepare(enum.IntEnum):
-    SETUP   = 0x10
-    IN      = 0x20
-    OUT     = 0x30
-    STALL   = 0x40
+    SETUP = 0x10
+    IN = 0x20
+    OUT = 0x30
+    STALL = 0x40
     UNSTALL = 0x80
+
 
 class HidEndpoint(enum.IntEnum):
     OUT_ADDR = 0x00
-    IN_ADDR  = 0x80
+    IN_ADDR = 0x80
+
 
 class UsbDevState(enum.IntEnum):
     DISCONNECTED = 0
-    DEFAULT      = 1
-    ADDRESSED    = 2
-    CONFIGURED   = 3
+    DEFAULT = 1
+    ADDRESSED = 2
+    CONFIGURED = 3
+
 
 class UsbInterface(enum.IntEnum):
     GENERIC = 0
-    U2F     = 1
-    HID     = 2
+    U2F = 1
+    HID = 2
 
-USB_SIZE    = 0x40
+
+USB_SIZE = 0x40
 
 usb_header = Struct(
     "endpoint" / Int8ub,
-    "tag"      / Int8ub,
-    "length"   / Int8ub,
+    "tag" / Int8ub,
+    "length" / Int8ub,
 )
 
 usb_setup = Struct(
-    "bmreq"   / Int8ub,
-    "breq"    / Int8ub,
-    "wValue"  / Int16ul,
-    "wIndex"  / Int16ub,
+    "bmreq" / Int8ub,
+    "breq" / Int8ub,
+    "wValue" / Int16ul,
+    "wIndex" / Int16ub,
     "wLength" / Int16ub,
 )
 
 hid_header = Struct(
     "channel" / Int16ub,
     "command" / Int8ub,
-    "seq"     / Int16ub,
-    "length"  / Int16ub,
+    "seq" / Int16ub,
+    "length" / Int16ub,
 )
+
 
 class HidPacket:
     def __init__(self):
         self.reset(0)
 
     def reset(self, size):
-        self.data = b''
+        self.data = b""
         self.seq = 0
         self.remaining_size = size
 
@@ -87,11 +96,12 @@ class HidPacket:
             self.data += data
             self.remaining_size -= len(data)
         else:
-            self.data += data[:self.remaining_size]
+            self.data += data[: self.remaining_size]
             self.remaining_size = 0
 
     def complete(self):
         return self.remaining_size == 0
+
 
 class Transport(ABC):
     def __init__(self, interface, send_xfer):
@@ -121,12 +131,15 @@ class Transport(ABC):
     def endpoint_out(self):
         return HidEndpoint.OUT_ADDR | self.interface
 
+
 class U2f(Transport):
     def __init__(self, send_xfer):
         super().__init__(UsbInterface.U2F, send_xfer)
 
     def build_xfer(self, tag, data):
-        packet = usb_header.build(dict(endpoint=self.endpoint_out, tag=tag, length=len(data)))
+        packet = usb_header.build(
+            dict(endpoint=self.endpoint_out, tag=tag, length=len(data))
+        )
         packet += data
         return packet
 
@@ -137,9 +150,10 @@ class U2f(Transport):
 
     def prepare(self, data):
         assert len(data) == USB_SIZE
-        packet = self.build_xfer(SephUsbTag.XFER_IN, b'')
+        packet = self.build_xfer(SephUsbTag.XFER_IN, b"")
         self.send_xfer(packet)
         return data
+
 
 class Hid(Transport):
     USB_CHANNEL = 0x0101
@@ -150,7 +164,14 @@ class Hid(Transport):
         self.hid_packet = HidPacket()
 
     def _build_header(self, data, length, seq):
-        header = hid_header.build(dict(channel=self.USB_CHANNEL, command=self.USB_COMMAND, seq=seq, length=length))
+        header = hid_header.build(
+            dict(
+                channel=self.USB_CHANNEL,
+                command=self.USB_COMMAND,
+                seq=seq,
+                length=length,
+            )
+        )
         if seq != 0:
             # strip hid_header.length
             header = header[:-2]
@@ -160,7 +181,9 @@ class Hid(Transport):
         header = self._build_header(data, length, seq)
         size = len(header) + len(data)
 
-        packet = usb_header.build(dict(endpoint=self.endpoint_out, tag=tag, length=size))
+        packet = usb_header.build(
+            dict(endpoint=self.endpoint_out, tag=tag, length=size)
+        )
         packet += header
         packet += data
 
@@ -173,8 +196,8 @@ class Hid(Transport):
             size = USB_SIZE - hid_header.sizeof() - 10
             if seq != 0:
                 size += 2
-            chunk = data[offset:offset+size]
-            chunk = chunk.ljust(size, b'\x00')
+            chunk = data[offset : offset + size]
+            chunk = chunk.ljust(size, b"\x00")
             if seq == 0:
                 length = len(data)
             else:
@@ -197,13 +220,13 @@ class Hid(Transport):
 
         if hid.seq == 0:
             self.hid_packet.reset(hid.length)
-            chunk = data[hid_header.sizeof():]
+            chunk = data[hid_header.sizeof() :]
         else:
             assert hid.seq == self.hid_packet.seq
-            chunk = data[hid_header.sizeof() - 2:]
+            chunk = data[hid_header.sizeof() - 2 :]
 
         self.hid_packet.append_data(chunk)
-        packet = self.build_xfer(SephUsbTag.XFER_IN, b'', self.hid_packet.seq)
+        packet = self.build_xfer(SephUsbTag.XFER_IN, b"", self.hid_packet.seq)
         self.send_xfer(packet)
 
         if self.hid_packet.complete():
@@ -214,13 +237,14 @@ class Hid(Transport):
 
         return answer
 
+
 class USB:
-    def __init__(self, _queue_event_packet, transport='hid'):
+    def __init__(self, _queue_event_packet, transport="hid"):
         self._queue_event_packet = _queue_event_packet
         self.packets_to_send = []
         self.state = UsbDevState.DISCONNECTED
 
-        if transport.lower() == 'hid':
+        if transport.lower() == "hid":
             self.transport = Hid(self.send_xfer)
         else:
             self.transport = U2f(self.send_xfer)
@@ -237,8 +261,22 @@ class USB:
         self._queue_event_packet(SephUsbTag.XFER_EVENT, packet)
 
     def _send_setup(self, breq, wValue):
-        data = usb_header.build(dict(endpoint=self.transport.endpoint_out, tag=SephUsbTag.XFER_SETUP, length=0))
-        data += usb_setup.build(dict(bmreq=UsbReq.RECIPIENT_DEVICE, breq=breq, wValue=wValue, wIndex=0, wLength=0))
+        data = usb_header.build(
+            dict(
+                endpoint=self.transport.endpoint_out,
+                tag=SephUsbTag.XFER_SETUP,
+                length=0,
+            )
+        )
+        data += usb_setup.build(
+            dict(
+                bmreq=UsbReq.RECIPIENT_DEVICE,
+                breq=breq,
+                wValue=wValue,
+                wIndex=0,
+                wLength=0,
+            )
+        )
         self.logger.debug("[SEND_SETUP] {}".format(binascii.hexlify(data)))
         self._queue_event_packet(SephUsbTag.XFER_EVENT, data)
 
@@ -285,12 +323,16 @@ class USB:
         header = usb_header.parse(data[:3])
         answer = None
         tag = SephUsbPrepare(header.tag)
-        self.logger.debug("[PREPARE] {} {} {}".format(repr(self.state), repr(tag), binascii.hexlify(data)))
+        self.logger.debug(
+            "[PREPARE] {} {} {}".format(
+                repr(self.state), repr(tag), binascii.hexlify(data)
+            )
+        )
 
         if tag == SephUsbPrepare.IN:
             if header.endpoint == self.transport.endpoint_in:
                 assert header.length == USB_SIZE
-                data = data[usb_header.sizeof():]
+                data = data[usb_header.sizeof() :]
                 answer = self.transport.prepare(data)
 
         return answer

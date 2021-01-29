@@ -8,27 +8,29 @@ from . import usb
 from .display import RENDER_METHOD
 from .readerror import ReadError
 
+
 class SephTag(IntEnum):
-    BUTTON_PUSH_EVENT           = 0x05
-    FINGER_EVENT                = 0x0c
-    DISPLAY_PROCESSED_EVENT     = 0x0d
-    TICKER_EVENT                = 0x0e
-    CAPDU_EVENT                 = 0x16
+    BUTTON_PUSH_EVENT = 0x05
+    FINGER_EVENT = 0x0C
+    DISPLAY_PROCESSED_EVENT = 0x0D
+    TICKER_EVENT = 0x0E
+    CAPDU_EVENT = 0x16
 
-    MCU                         = 0x31
-    TAG_BLE_RADIO_POWER         = 0x44
-    USB_CONFIG                  = 0x4f
-    USB_EP_PREPARE              = 0x50
+    MCU = 0x31
+    TAG_BLE_RADIO_POWER = 0x44
+    USB_CONFIG = 0x4F
+    USB_EP_PREPARE = 0x50
 
-    RAPDU                       = 0x53
-    GENERAL_STATUS              = 0x60
+    RAPDU = 0x53
+    GENERAL_STATUS = 0x60
     GENERAL_STATUS_LAST_COMMAND = 0x0000
-    SCREEN_DISPLAY_STATUS       = 0x65
-    PRINTF_STATUS               = 0x66
-    SCREEN_DISPLAY_RAW_STATUS   = 0x69
+    SCREEN_DISPLAY_STATUS = 0x65
+    PRINTF_STATUS = 0x66
+    SCREEN_DISPLAY_RAW_STATUS = 0x69
 
-    FINGER_EVENT_TOUCH          = 0x01
-    FINGER_EVENT_RELEASE        = 0x02
+    FINGER_EVENT_TOUCH = 0x01
+    FINGER_EVENT_RELEASE = 0x02
+
 
 TICKER_DELAY = 0.1
 
@@ -52,8 +54,9 @@ def ticker(add_tick):
             flood = False
         time.sleep(TICKER_DELAY)
 
+
 class PacketThread(threading.Thread):
-    TICKER_PACKET = (SephTag.TICKER_EVENT, b'')
+    TICKER_PACKET = (SephTag.TICKER_EVENT, b"")
 
     def __init__(self, s, status_event, *args, **kwargs):
         super(PacketThread, self).__init__(name="packet", daemon=True)
@@ -64,12 +67,12 @@ class PacketThread(threading.Thread):
         self.logger = logging.getLogger("seproxyhal.packet")
         self.stop = False
 
-    def _send_packet(self, tag, data=b''):
+    def _send_packet(self, tag, data=b""):
         """Send a packet to the app."""
 
-        size = len(data).to_bytes(2, 'big')
-        packet = tag.to_bytes(1, 'big') + size + data
-        self.logger.debug("send {}" .format(packet.hex()))
+        size = len(data).to_bytes(2, "big")
+        packet = tag.to_bytes(1, "big") + size + data
+        self.logger.debug("send {}".format(packet.hex()))
         try:
             self.s.sendall(packet)
         except BrokenPipeError:
@@ -77,7 +80,7 @@ class PacketThread(threading.Thread):
         except OSError:
             self.stop = True
 
-    def queue_packet(self, tag, data=b'', priority=False):
+    def queue_packet(self, tag, data=b"", priority=False):
         """
         Append a packet to the queue of packets to be sent.
 
@@ -124,12 +127,13 @@ class PacketThread(threading.Thread):
 
         self.logger.debug("exiting")
 
+
 class SeProxyHal:
     def __init__(self, s, automation=None, automation_server=None):
         self.s = s
         self.last_ticker_sent_at = 0.0
         self.logger = logging.getLogger("seproxyhal")
-        self.printf_queue = ''
+        self.printf_queue = ""
         self.automation = automation
         self.automation_server = automation_server
 
@@ -137,15 +141,17 @@ class SeProxyHal:
         self.packet_thread = PacketThread(self.s, self.status_event)
         self.packet_thread.start()
 
-        self.ticker_thread = threading.Thread(name="ticker",
-                                              target=ticker,
-                                              args=(self.packet_thread.add_tick,),
-                                              daemon=True)
+        self.ticker_thread = threading.Thread(
+            name="ticker",
+            target=ticker,
+            args=(self.packet_thread.add_tick,),
+            daemon=True,
+        )
         self.ticker_thread.start()
         self.usb = usb.USB(self.packet_thread.queue_packet)
 
     def _recvall(self, size):
-        data = b''
+        data = b""
         while size > 0:
             tmp = self.s.recv(size)
             if len(tmp) == 0:
@@ -155,12 +161,12 @@ class SeProxyHal:
             size -= len(tmp)
         return data
 
-    def _send_packet(self, tag, data=b''):
-        '''Send packet to the app.'''
+    def _send_packet(self, tag, data=b""):
+        """Send packet to the app."""
 
-        size = len(data).to_bytes(2, 'big')
-        packet = tag.to_bytes(1, 'big') + size + data
-        #self.logger.debug("send {}" .format(packet.hex()))
+        size = len(data).to_bytes(2, "big")
+        packet = tag.to_bytes(1, "big") + size + data
+        # self.logger.debug("send {}" .format(packet.hex()))
         try:
             self.s.sendall(packet)
         except BrokenPipeError:
@@ -178,7 +184,7 @@ class SeProxyHal:
         if self.sending_ticker_event.acquire(False):
             self.sleep_time = TICKER_DELAY - (time.time() - self.last_ticker_sent_at)
             if self.sleep_time > 0:
-                DeferedTicketEventSender(self, name = "DeferedTicketEvent").start()
+                DeferedTicketEventSender(self, name="DeferedTicketEvent").start()
             else:
                 self._send_ticker_event()
                 self.status_received = False
@@ -202,7 +208,7 @@ class SeProxyHal:
 
     def apply_automation(self, text, x, y):
         if self.automation_server:
-            event = { "text": text.decode("ascii", "ignore"), "x": x, "y": y }
+            event = {"text": text.decode("ascii", "ignore"), "x": x, "y": y}
             self.automation_server.broadcast(event)
 
         if self.automation:
@@ -227,11 +233,11 @@ class SeProxyHal:
         self.s.close()
 
     def can_read(self, s, screen):
-        '''
+        """
         Handle packet sent by the app.
 
         This function is called thanks to a screen QSocketNotifier.
-        '''
+        """
 
         assert s == self.s.fileno()
 
@@ -241,7 +247,7 @@ class SeProxyHal:
             raise ReadError("fd closed")
 
         tag = data[0]
-        size = int.from_bytes(data[1:3], 'big')
+        size = int.from_bytes(data[1:3], "big")
 
         data = self._recvall(size)
         if data is None:
@@ -251,16 +257,21 @@ class SeProxyHal:
 
         self.logger.debug(f"received (tag: {tag:#04x}, size: {size:#04x}): {data!r}")
 
-        if tag & 0xf0 == SephTag.GENERAL_STATUS:
+        if tag & 0xF0 == SephTag.GENERAL_STATUS:
             ret = None
             if tag == SephTag.GENERAL_STATUS:
-                if int.from_bytes(data[:2], 'big') == SephTag.GENERAL_STATUS_LAST_COMMAND:
+                if (
+                    int.from_bytes(data[:2], "big")
+                    == SephTag.GENERAL_STATUS_LAST_COMMAND
+                ):
                     screen.screen_update()
 
             elif tag == SephTag.SCREEN_DISPLAY_STATUS:
                 self.logger.debug(f"DISPLAY_STATUS {data!r}")
                 ret = screen.display_status(data)
-                self.packet_thread.queue_packet(SephTag.DISPLAY_PROCESSED_EVENT, priority=True)
+                self.packet_thread.queue_packet(
+                    SephTag.DISPLAY_PROCESSED_EVENT, priority=True
+                )
 
             elif tag == SephTag.SCREEN_DISPLAY_RAW_STATUS:
                 self.logger.debug("SephTag.SCREEN_DISPLAY_RAW_STATUS")
@@ -274,18 +285,22 @@ class SeProxyHal:
                 #
                 # A DISPLAY_PROCESSED_EVENT should be answered immediately,
                 # hence priority=True.
-                self.packet_thread.queue_packet(SephTag.DISPLAY_PROCESSED_EVENT, priority=True)
+                self.packet_thread.queue_packet(
+                    SephTag.DISPLAY_PROCESSED_EVENT, priority=True
+                )
                 if screen.rendering == RENDER_METHOD.PROGRESSIVE:
                     screen.screen_update()
 
             elif tag == SephTag.PRINTF_STATUS:
-                for b in [ chr(b) for b in data ]:
-                    if b == '\n':
+                for b in [chr(b) for b in data]:
+                    if b == "\n":
                         self.logger.info(f"printf: {self.printf_queue}")
-                        self.printf_queue = ''
+                        self.printf_queue = ""
                     else:
                         self.printf_queue += b
-                self.packet_thread.queue_packet(SephTag.DISPLAY_PROCESSED_EVENT, priority=True)
+                self.packet_thread.queue_packet(
+                    SephTag.DISPLAY_PROCESSED_EVENT, priority=True
+                )
                 if screen.rendering == RENDER_METHOD.PROGRESSIVE:
                     screen.screen_update()
 
@@ -323,36 +338,40 @@ class SeProxyHal:
             sys.exit(0)
 
     def handle_button(self, button, pressed):
-        '''Forward button press/release from the GUI to the app.'''
+        """Forward button press/release from the GUI to the app."""
 
         if pressed:
-            self.packet_thread.queue_packet(SephTag.BUTTON_PUSH_EVENT, (button << 1).to_bytes(1, 'big'))
+            self.packet_thread.queue_packet(
+                SephTag.BUTTON_PUSH_EVENT, (button << 1).to_bytes(1, "big")
+            )
         else:
-            self.packet_thread.queue_packet(SephTag.BUTTON_PUSH_EVENT, (0 << 1).to_bytes(1, 'big'))
+            self.packet_thread.queue_packet(
+                SephTag.BUTTON_PUSH_EVENT, (0 << 1).to_bytes(1, "big")
+            )
 
     def handle_finger(self, x, y, pressed):
-        '''Forward finger press/release from the GUI to the app.'''
+        """Forward finger press/release from the GUI to the app."""
 
         if pressed:
-            packet = SephTag.FINGER_EVENT_TOUCH.to_bytes(1, 'big')
+            packet = SephTag.FINGER_EVENT_TOUCH.to_bytes(1, "big")
         else:
-            packet = SephTag.FINGER_EVENT_RELEASE.to_bytes(1, 'big')
-        packet += x.to_bytes(2, 'big')
-        packet += y.to_bytes(2, 'big')
+            packet = SephTag.FINGER_EVENT_RELEASE.to_bytes(1, "big")
+        packet += x.to_bytes(2, "big")
+        packet += y.to_bytes(2, "big")
 
         self.packet_thread.queue_packet(SephTag.FINGER_EVENT, packet)
 
     def to_app(self, packet):
-        '''
+        """
         Forward raw APDU to the app.
 
         Packets can be forwarded directly to the SE thanks to
         SephTag.CAPDU_EVENT, but it doesn't work with messages are larger
         than G_io_seproxyhal_spi_buffer. Emulating a basic USB stack is more
         reliable, see issue #11.
-        '''
+        """
 
-        if packet.startswith(b'RAW!') and len(packet) > 4:
+        if packet.startswith(b"RAW!") and len(packet) > 4:
             tag, packet = packet[4], packet[5:]
             self.packet_thread.queue_packet(tag, packet)
         else:

@@ -7,42 +7,53 @@ import os
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
+
 class APDUClient:
     # default APDU TCP server
-    HOST, PORT = ('127.0.0.1', 9999)
+    HOST, PORT = ("127.0.0.1", 9999)
 
     def __init__(self, path):
         self.path = path
         self.process = None
         # name example: nanos#btc#1.5#5b6693b8.elf
         root, ext = os.path.splitext(path)
-        self.model, self.name, self.sdk, self.revision = os.path.basename(root).split('#')
+        self.model, self.name, self.sdk, self.revision = os.path.basename(root).split(
+            "#"
+        )
         self.touch_events = []
 
-    def run(self, headless=True, finger_port=0, deterministic_rng='', seed="", rampage="", args=[]):
-        '''Launch an app.'''
+    def run(
+        self,
+        headless=True,
+        finger_port=0,
+        deterministic_rng="",
+        seed="",
+        rampage="",
+        args=[],
+    ):
+        """Launch an app."""
 
         # if the app is already running, do nothing
         if self.process:
             return
 
-        cmd = [ os.path.join(SCRIPT_DIR, '..', '..', 'speculos.py') ]
+        cmd = [os.path.join(SCRIPT_DIR, "..", "..", "speculos.py")]
         cmd += args
         if headless:
-            cmd += [ '--display', 'headless' ]
+            cmd += ["--display", "headless"]
         if finger_port:
-            cmd += ['--finger-port', str(finger_port)]
+            cmd += ["--finger-port", str(finger_port)]
         if deterministic_rng:
-            cmd += ['--deterministic-rng', deterministic_rng]
+            cmd += ["--deterministic-rng", deterministic_rng]
         if seed:
-            cmd += ['--seed', seed]
+            cmd += ["--seed", seed]
         if rampage:
-            cmd += ['--rampage', rampage]
-        cmd += [ '--model', self.model ]
-        cmd += [ '--sdk', self.sdk ]
-        cmd += [ self.path ]
+            cmd += ["--rampage", rampage]
+        cmd += ["--model", self.model]
+        cmd += ["--sdk", self.sdk]
+        cmd += [self.path]
 
-        print('[*]', cmd)
+        print("[*]", cmd)
         self.process = subprocess.Popen(cmd)
         time.sleep(1)
 
@@ -59,12 +70,12 @@ class APDUClient:
         self.process.wait()
 
     def _recvall(self, s, size):
-        data = b''
+        data = b""
         while size > 0:
             try:
                 tmp = s.recv(size)
             except ConnectionResetError:
-                tmp = b''
+                tmp = b""
             if len(tmp) == 0:
                 print("[-] connection with client closed", file=sys.stderr)
                 return None
@@ -77,26 +88,26 @@ class APDUClient:
         if data is None:
             return None
 
-        size = int.from_bytes(data, byteorder='big')
+        size = int.from_bytes(data, byteorder="big")
         packet = self._recvall(s, size)
-        status = int.from_bytes(self._recvall(s, 2), 'big')
+        status = int.from_bytes(self._recvall(s, 2), "big")
         return packet, status
 
     def _exchange(self, s, packet, verbose):
-        packet = len(packet).to_bytes(4, 'big') + packet
+        packet = len(packet).to_bytes(4, "big") + packet
         if verbose:
-            print('[>]', binascii.hexlify(packet))
+            print("[>]", binascii.hexlify(packet))
         s.sendall(packet)
 
         data, status = self._recv_packet(s)
 
         if verbose:
-            print('[<]', binascii.hexlify(data), hex(status))
+            print("[<]", binascii.hexlify(data), hex(status))
 
         return data, status
 
     def exchange(self, packet, verbose=False):
-        '''Exchange a packet with the app APDU TCP server.'''
+        """Exchange a packet with the app APDU TCP server."""
 
         for i in range(0, 5):
             try:

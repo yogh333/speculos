@@ -1,6 +1,6 @@
 #!/usr/bin/python2
 
-'''
+"""
 VNC client with skin support.
 
 Speculos must be launched with the --vnc-port argument in order to expose the
@@ -17,7 +17,7 @@ version of gtkvnc.
 
 This script is based on the example from
 https://github.com/jwendell/gtk-vnc/blob/master/examples/gvncviewer.py
-'''
+"""
 
 import argparse
 import gtk
@@ -30,6 +30,7 @@ from PIL import Image
 
 OFFSET_X, OFFSET_Y = 0, 0
 SCREEN_WIDTH, SCREEN_HEIGHT = 128, 32
+
 
 def button_press_event(box, event):
     global OFFSET_X, OFFSET_Y
@@ -44,11 +45,13 @@ def button_press_event(box, event):
         root = window.get_root_window()
         root.set_cursor(arrow)
 
+
 def button_release_event(box, event):
     if event.button == 1:
         arrow = gdk.Cursor(gdk.LEFT_PTR)
         root = window.get_root_window()
         root.set_cursor(arrow)
+
 
 def motion_notify_event(box, event):
     global OFFSET_X, OFFSET_Y
@@ -58,31 +61,38 @@ def motion_notify_event(box, event):
     y = int(event.y_root - OFFSET_Y)
     window.move(x, y)
 
+
 def vnc_screenshot(src, ev, vnc):
     if ev.keyval == gtk.gdk.keyval_from_name("s"):
         filename = "/tmp/speculos-{}.png".format(int(time.time()))
         pix = vnc.get_pixbuf()
         pix.save(filename, "png")
-        print("[*] screenshot saved to {}".format(filename))
+        print ("[*] screenshot saved to {}".format(filename))
 
     return False
+
 
 def vnc_grab(src, window):
     pass
 
+
 def vnc_ungrab(src, window):
     pass
 
+
 def vnc_connected(src):
     print "Connected to server"
+
 
 def vnc_initialized(src, window):
     print "Connection initialized"
     window.show_all()
 
+
 def vnc_disconnected(src):
     print "Disconnected from server"
     gtk.main_quit()
+
 
 def expose(widget, event):
     """
@@ -104,13 +114,15 @@ def expose(widget, event):
     cr.paint()
     cr.fill()
 
+
 def is_black_rectangle(pixels, x, y, width, height):
     black = (0, 0, 0, 255)
     for i in range(0, SCREEN_WIDTH):
         for j in range(0, SCREEN_HEIGHT):
-            if pixels[x+i, y+j] != black:
+            if pixels[x + i, y + j] != black:
                 return False
     return True
+
 
 def find_screen_position(image):
     width, height = image.size
@@ -121,16 +133,17 @@ def find_screen_position(image):
                 return x, y
 
     # if not found, place the screen at the center of the image
-    print("[-] can't found the screen position in the skin")
+    print ("[-] can't found the screen position in the skin")
     x = (width - SCREEN_WIDTH) / 2
     y = (height - SCREEN_HEIGHT) / 2
     return x, y
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-o', '--host', default='127.0.0.1', help='VNC host')
-    parser.add_argument('-p', '--port', default='5902', help='VNC port')
-    parser.add_argument('-s', '--skin', default=None, help='PNG image')
+    parser.add_argument("-o", "--host", default="127.0.0.1", help="VNC host")
+    parser.add_argument("-p", "--port", default="5902", help="VNC port")
+    parser.add_argument("-s", "--skin", default=None, help="PNG image")
     args = parser.parse_args()
 
     window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -171,10 +184,10 @@ if __name__ == '__main__':
     vnc.set_keyboard_grab(True)
 
     # Example to change grab key combination to Ctrl+Alt+g
-    grab_keys = [ gtk.keysyms.Control_L, gtk.keysyms.Alt_L, gtk.keysyms.g ]
+    grab_keys = [gtk.keysyms.Control_L, gtk.keysyms.Alt_L, gtk.keysyms.g]
     vnc.set_grab_keys(grab_keys)
 
-    print("Connecting to %s %s" % (args.host, args.port))
+    print ("Connecting to %s %s" % (args.host, args.port))
     vnc.open_host(args.host, args.port)
 
     vnc.connect("vnc-pointer-grab", vnc_grab, window)

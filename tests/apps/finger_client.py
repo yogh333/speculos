@@ -4,11 +4,11 @@ import time
 
 
 class FingerClient(threading.Thread):
-    '''
+    """
     Dumb thread connecting to the finger_tcp endpoint of Speculos to send him periodical touch events
-    '''
+    """
 
-    def __init__(self, host='0.0.0.0', port=1236):
+    def __init__(self, host="0.0.0.0", port=1236):
         threading.Thread.__init__(self)
         self.host = host
         self.port = port
@@ -20,7 +20,7 @@ class FingerClient(threading.Thread):
         self.running = True
         while self.running:
             if self.eventsLoop:
-                eventsLoop = ','.join(self.eventsLoop)
+                eventsLoop = ",".join(self.eventsLoop)
                 self.s.sendall(bytes(eventsLoop, "ascii"))
             time.sleep(0.2)
 

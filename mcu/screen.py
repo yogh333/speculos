@@ -9,7 +9,7 @@ from . import bagl
 from .display import Display, FrameBuffer, COLORS, MODELS, RENDER_METHOD
 from .readerror import ReadError
 
-BUTTON_LEFT  = 1
+BUTTON_LEFT = 1
 BUTTON_RIGHT = 2
 DEFAULT_WINDOW_X = 10
 DEFAULT_WINDOW_Y = 10
@@ -39,8 +39,9 @@ class PaintWidget(QWidget):
             # Only call scaled if needed.
             copied_pixmap = self.mPixmap.scaled(
                 self.mPixmap.width() * self.pixel_size,
-                self.mPixmap.height() * self.pixel_size)
-        qp.drawPixmap(0, 0, copied_pixmap )
+                self.mPixmap.height() * self.pixel_size,
+            )
+        qp.drawPixmap(0, 0, copied_pixmap)
 
     def _redraw(self, qp):
         for (x, y), color in self.fb.pixels.items():
@@ -52,6 +53,7 @@ class PaintWidget(QWidget):
 
     def draw_point(self, x, y, color):
         return self.fb.draw_point(x, y, color)
+
 
 class Screen(Display):
     def __init__(self, app, apdu, seph, button_tcp, finger_tcp, model, rendering, vnc):
@@ -89,8 +91,8 @@ class Screen(Display):
 
     def _key_event(self, event, pressed):
         key = event.key()
-        if key in [ Qt.Key_Left, Qt.Key_Right ]:
-            buttons = { Qt.Key_Left: BUTTON_LEFT, Qt.Key_Right: BUTTON_RIGHT }
+        if key in [Qt.Key_Left, Qt.Key_Right]:
+            buttons = {Qt.Key_Left: BUTTON_LEFT, Qt.Key_Right: BUTTON_RIGHT}
             # forward this event to seph
             self.seph.handle_button(buttons[key], pressed)
         elif key == Qt.Key_Down:
@@ -101,23 +103,37 @@ class Screen(Display):
 
     def display_status(self, data):
         ret = self.bagl.display_status(data)
-        if MODELS[self.model].name == 'blue':
-            self.screen_update()    # Actually, this method doesn't work
+        if MODELS[self.model].name == "blue":
+            self.screen_update()  # Actually, this method doesn't work
         return ret
 
     def display_raw_status(self, data):
         self.bagl.display_raw_status(data)
-        if MODELS[self.model].name == 'blue':
-            self.screen_update()    # Actually, this method doesn't work
+        if MODELS[self.model].name == "blue":
+            self.screen_update()  # Actually, this method doesn't work
 
     def screen_update(self):
         self.bagl.refresh()
 
+
 class App(QMainWindow):
-    def __init__(self, qt_app, apdu, seph, button_tcp, finger_tcp, color, model, ontop, rendering, vnc, pixel_size):
+    def __init__(
+        self,
+        qt_app,
+        apdu,
+        seph,
+        button_tcp,
+        finger_tcp,
+        color,
+        model,
+        ontop,
+        rendering,
+        vnc,
+        pixel_size,
+    ):
         super().__init__()
 
-        self.setWindowTitle('Ledger %s Emulator' % MODELS[model].name)
+        self.setWindowTitle("Ledger %s Emulator" % MODELS[model].name)
 
         self.seph = seph
         self.width, self.height = MODELS[model].screen_size
@@ -144,14 +160,20 @@ class App(QMainWindow):
             x2 = x1 + screen.geometry().width() - 1
             y2 = y1 + screen.geometry().height() - 1
 
-            if window_x >= x1 and window_y >= y1 and (window_x + window_width - 1) <= x2 and \
-                (window_y + window_height - 1) <= y2:
+            if (
+                window_x >= x1
+                and window_y >= y1
+                and (window_x + window_width - 1) <= x2
+                and (window_y + window_height - 1) <= y2
+            ):
                 window_is_visible = True
-                break   # No need to check other screens
+                break  # No need to check other screens
 
         # If the window is not FULLY visible, force default coordinates on current screen:
         if not window_is_visible:
-            print(f"Window is NOT FULLY visible => using default coordinates in current screen.")
+            print(
+                f"Window is NOT FULLY visible => using default coordinates in current screen."
+            )
             window_x = current_screen_x + DEFAULT_WINDOW_X
             window_y = current_screen_y + DEFAULT_WINDOW_Y
 
@@ -173,9 +195,11 @@ class App(QMainWindow):
         self.m.move(self.box_position_x * pixel_size, self.box_position_y * pixel_size)
         self.m.resize(self.width * pixel_size, self.height * pixel_size)
 
-        self.screen = Screen(self, apdu, seph, button_tcp, finger_tcp, model, rendering, vnc)
+        self.screen = Screen(
+            self, apdu, seph, button_tcp, finger_tcp, model, rendering, vnc
+        )
 
-        self.setWindowIcon(QIcon('mcu/icon.png'))
+        self.setWindowIcon(QIcon("mcu/icon.png"))
 
         self.show()
 
@@ -194,7 +218,7 @@ class App(QMainWindow):
         return x, y
 
     def mousePressEvent(self, event):
-        '''Get the mouse location.'''
+        """Get the mouse location."""
 
         self.mouse_offset = event.pos()
 
@@ -210,7 +234,7 @@ class App(QMainWindow):
         QApplication.restoreOverrideCursor()
 
     def mouseMoveEvent(self, event):
-        '''Move the window.'''
+        """Move the window."""
 
         x = event.globalX()
         y = event.globalY()
@@ -219,18 +243,44 @@ class App(QMainWindow):
         self.move(x - x_w, y - y_w)
 
     def closeEvent(self, event):
-        '''
+        """
         Called when the window is closed. We save the current window position to
         the settings file in order to restore it upon next speculos execution.
-        '''
+        """
         settings = QSettings("ledger", "speculos")
         settings.setValue("window_x", self.pos().x())
         settings.setValue("window_y", self.pos().y())
 
+
 class QtScreen:
-    def __init__(self, apdu, seph, button_tcp=None, finger_tcp=None, color='MATTE_BLACK', model='nanos', ontop=False, rendering=RENDER_METHOD.FLUSHED, vnc=None, pixel_size=2, **_):
+    def __init__(
+        self,
+        apdu,
+        seph,
+        button_tcp=None,
+        finger_tcp=None,
+        color="MATTE_BLACK",
+        model="nanos",
+        ontop=False,
+        rendering=RENDER_METHOD.FLUSHED,
+        vnc=None,
+        pixel_size=2,
+        **_,
+    ):
         self.app = QApplication(sys.argv)
-        self.app_widget = App(self.app, apdu, seph, button_tcp, finger_tcp, color, model, ontop, rendering, vnc, pixel_size)
+        self.app_widget = App(
+            self.app,
+            apdu,
+            seph,
+            button_tcp,
+            finger_tcp,
+            color,
+            model,
+            ontop,
+            rendering,
+            vnc,
+            pixel_size,
+        )
 
     def run(self):
         self.app.exec_()

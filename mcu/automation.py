@@ -5,6 +5,7 @@ import os
 import pkg_resources
 import re
 
+
 class Automation:
     def __init__(self, document):
         self.logger = logging.getLogger("automation")

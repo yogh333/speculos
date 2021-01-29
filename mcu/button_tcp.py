@@ -1,4 +1,4 @@
-'''
+"""
 TCP server to emulate buttons:
 
 - L/R: press left/right button
@@ -8,19 +8,21 @@ Usage example:
 
     $ echo -n RrRrRr | nc -nv 127.0.0.1 1235
     $ echo -n LRlr | nc -nv 127.0.0.1 1235
-'''
+"""
 
 import logging
 import socket
 import time
 
+
 class FakeButtonClient:
     actions = {
-        'L': (1, True),
-        'l': (1, False),
-        'R': (2, True),
-        'r': (2, False),
+        "L": (1, True),
+        "l": (1, False),
+        "R": (2, True),
+        "r": (2, False),
     }
+
     def __init__(self, s):
         self.s = s
         self.logger = logging.getLogger("button")
@@ -31,7 +33,7 @@ class FakeButtonClient:
 
     def can_read(self, s, screen):
         packet = self.s.recv(1)
-        if packet == b'':
+        if packet == b"":
             self._close(screen)
             return
 
@@ -45,11 +47,12 @@ class FakeButtonClient:
             else:
                 self.logger.debug(f"ignoring byte {c!r}")
 
+
 class FakeButton:
     def __init__(self, port):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.s.bind(('0.0.0.0', port)) # lgtm [py/bind-socket-all-network-interfaces]
+        self.s.bind(("0.0.0.0", port))  # lgtm [py/bind-socket-all-network-interfaces]
         self.s.listen(5)
         self.logger = logging.getLogger("button")
 

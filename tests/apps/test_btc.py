@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Tests to ensure that speculos launches correctly the BTC apps.
-'''
+"""
 
 import binascii
 import os
@@ -10,6 +10,7 @@ import pkg_resources
 import pytest
 import socket
 import time
+
 
 class Vnc:
     def __init__(self, port):
@@ -40,8 +41,9 @@ class Vnc:
         else:
             assert data == b"\x01\x02"
 
+
 class TestBtc:
-    '''Tests for Bitcoin app.'''
+    """Tests for Bitcoin app."""
 
     @staticmethod
     def get_automation_path(name):
@@ -50,11 +52,11 @@ class TestBtc:
         return f"file:{path}"
 
     def test_btc_get_version(self, app, stop_app):
-        '''Send a get_version APDU to the BTC app.'''
+        """Send a get_version APDU to the BTC app."""
 
         app.run()
 
-        packet = binascii.unhexlify('E0C4000000')
+        packet = binascii.unhexlify("E0C4000000")
         data, status = app.exchange(packet)
         assert status == 0x9000
 
@@ -67,9 +69,11 @@ class TestBtc:
         finger_client.eventsLoop = ["220,440,1", "220,440,0"]  # x,y,pressed
         finger_client.start()
 
-        bip32_path = bytes.fromhex("8000002C" + "80000000" + "80000000" + "00000000" + "00000000")
-        payload = bytes([len(bip32_path)//4]) + bip32_path
-        apdu = bytes.fromhex("e0400100") +  bytes([len(payload)]) + payload
+        bip32_path = bytes.fromhex(
+            "8000002C" + "80000000" + "80000000" + "00000000" + "00000000"
+        )
+        payload = bytes([len(bip32_path) // 4]) + bip32_path
+        apdu = bytes.fromhex("e0400100") + bytes([len(payload)]) + payload
 
         response, status = app.exchange(apdu)
         assert status == 0x9000
@@ -77,15 +81,20 @@ class TestBtc:
     def test_btc_automation(self, app):
         """Retrieve the pubkey, which requires a validation"""
 
-        if app.revision == '00000000' and app.model == 'nanos':
+        if app.revision == "00000000" and app.model == "nanos":
             pytest.skip("unsupported get pubkey ux for this app version")
-        if app.model == 'nanox':
+        if app.model == "nanox":
             pytest.skip("automation isn't supported on the Nano X")
 
-        args = [ '--automation', TestBtc.get_automation_path(f'btc_getpubkey_{app.model}.json') ]
+        args = [
+            "--automation",
+            TestBtc.get_automation_path(f"btc_getpubkey_{app.model}.json"),
+        ]
         app.run(args=args)
 
-        packet = binascii.unhexlify('e040010115058000003180000000800000000000000000000000')
+        packet = binascii.unhexlify(
+            "e040010115058000003180000000800000000000000000000000"
+        )
         data, status = app.exchange(packet)
         assert status == 0x9000
 
@@ -93,7 +102,7 @@ class TestBtc:
 
     def test_vnc_no_password(self, app, stop_app):
         port = 5900
-        args = [ "--vnc-port", f"{port}" ]
+        args = ["--vnc-port", f"{port}"]
         app.run(args=args)
 
         vnc = Vnc(port)
@@ -102,23 +111,24 @@ class TestBtc:
     def test_vnc_with_password(self, app, stop_app):
         password = "secret"
         port = 5900
-        args = [ "--vnc-port", f"{port}", "--vnc-password", password ]
+        args = ["--vnc-port", f"{port}", "--vnc-password", password]
         app.run(args=args)
 
         vnc = Vnc(port)
         vnc.auth(password)
 
+
 class TestBtcTestnet:
-    '''Tests for Bitcoin Testnet app.'''
+    """Tests for Bitcoin Testnet app."""
 
     def test_btc_lib(self, app, stop_app):
         # assumes that the Bitcoin version of the app also exists.
-        btc_app = app.path.replace('btc-test', 'btc')
+        btc_app = app.path.replace("btc-test", "btc")
         assert os.path.exists(btc_app)
 
-        args = [ '-l', 'Bitcoin:%s' % btc_app ]
+        args = ["-l", "Bitcoin:%s" % btc_app]
         app.run(args=args)
 
-        packet = binascii.unhexlify('E0C4000000')
+        packet = binascii.unhexlify("E0C4000000")
         data, status = app.exchange(packet)
         assert status == 0x9000

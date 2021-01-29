@@ -1,32 +1,32 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
 
-Model = namedtuple('Model', 'name screen_size box_position box_size')
+Model = namedtuple("Model", "name screen_size box_position box_size")
 MODELS = {
-    'nanos': Model('Nano S', (128, 32), (20, 13), (100, 26)),
-    'nanox': Model('Nano X', (128, 64), (5, 5), (10, 10)),
-    'blue': Model('Blue', (320, 480), (13, 13), (26, 26)),
+    "nanos": Model("Nano S", (128, 32), (20, 13), (100, 26)),
+    "nanox": Model("Nano X", (128, 64), (5, 5), (10, 10)),
+    "blue": Model("Blue", (320, 480), (13, 13), (26, 26)),
 }
 
 COLORS = {
-    'LAGOON_BLUE': 0x7ebab5,
-    'JADE_GREEN': 0xb9ceac,
-    'FLAMINGO_PINK': 0xd8a0a6,
-    'SAFFRON_YELLOW': 0xf6a950,
-    'MATTE_BLACK': 0x111111,
-
-    'CHARLOTTE_PINK': 0xff5555,
-    'ARNAUD_GREEN': 0x79ff79,
-    'SYLVE_CYAN': 0x29f3f3,
+    "LAGOON_BLUE": 0x7EBAB5,
+    "JADE_GREEN": 0xB9CEAC,
+    "FLAMINGO_PINK": 0xD8A0A6,
+    "SAFFRON_YELLOW": 0xF6A950,
+    "MATTE_BLACK": 0x111111,
+    "CHARLOTTE_PINK": 0xFF5555,
+    "ARNAUD_GREEN": 0x79FF79,
+    "SYLVE_CYAN": 0x29F3F3,
 }
 
-RenderMethods = namedtuple('RenderMethods', 'PROGRESSIVE FLUSHED')
+RenderMethods = namedtuple("RenderMethods", "PROGRESSIVE FLUSHED")
 RENDER_METHOD = RenderMethods(0, 1)
+
 
 class FrameBuffer(ABC):
     COLORS = {
-        "nanos": 0x00fffb,
-        "nanox": 0xdddddd,
+        "nanos": 0x00FFFB,
+        "nanox": 0xDDDDDD,
     }
 
     def __init__(self, model):
@@ -39,6 +39,7 @@ class FrameBuffer(ABC):
         if color != 0x000000:
             color = FrameBuffer.COLORS.get(self.model, color)
         self.pixels[(x, y)] = color
+
 
 class Display(ABC):
     def __init__(self, apdu, seph, model, rendering):

@@ -1,16 +1,17 @@
-'''
+"""
 Forward packets between an external application and the emulated device.
 
 Internally, it makes use of a TCP socket server to allow these 2 components to
 communicate.
-'''
+"""
 
 import errno
 import logging
 import socket
 
+
 class ApduServer:
-    def __init__(self, host='127.0.0.1', port=9999, hid=False):
+    def __init__(self, host="127.0.0.1", port=9999, hid=False):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.bind((host, port))
@@ -28,18 +29,19 @@ class ApduServer:
     def forward_to_client(self, packet):
         self.client.forward_to_client(packet)
 
+
 class ApduClient:
     def __init__(self, s):
         self.s = s
         self.logger = logging.getLogger("apdu")
 
     def _recvall(self, size):
-        data = b''
+        data = b""
         while size > 0:
             try:
                 tmp = self.s.recv(size)
             except ConnectionResetError:
-                tmp = b''
+                tmp = b""
             if len(tmp) == 0:
                 self.logger.debug("connection with client closed")
                 return None
@@ -52,7 +54,7 @@ class ApduClient:
         if data is None:
             return None
 
-        size = int.from_bytes(data, byteorder='big')
+        size = int.from_bytes(data, byteorder="big")
         packet = self._recvall(size)
         if packet is None:
             return None
@@ -60,7 +62,7 @@ class ApduClient:
         return packet
 
     def can_read(self, s, screen):
-        '''Forward APDU packet to the app'''
+        """Forward APDU packet to the app"""
 
         assert self.s.fileno() == s
 
@@ -74,12 +76,12 @@ class ApduClient:
         screen.forward_to_app(packet)
 
     def forward_to_client(self, packet):
-        '''Encode and forward APDU to the client.'''
+        """Encode and forward APDU to the client."""
 
         self.logger.info("< {}".format(packet.hex()))
 
         size = len(packet) - 2
-        packet = size.to_bytes(4, 'big') + packet
+        packet = size.to_bytes(4, "big") + packet
         try:
             self.s.sendall(packet)
         except OSError as e:

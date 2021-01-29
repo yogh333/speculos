@@ -4,6 +4,7 @@ from . import bagl
 from .display import Display, FrameBuffer, MODELS, RENDER_METHOD
 from .readerror import ReadError
 
+
 class HeadlessPaintWidget(FrameBuffer):
     def __init__(self, parent, model, vnc=None):
         super().__init__(model)
@@ -18,8 +19,19 @@ class HeadlessPaintWidget(FrameBuffer):
         if self.vnc:
             self.vnc.redraw(self.pixels)
 
+
 class Headless(Display):
-    def __init__(self, apdu, seph, button_tcp=None, finger_tcp=None, model='nanos', rendering=RENDER_METHOD.FLUSHED, vnc=None, **_):
+    def __init__(
+        self,
+        apdu,
+        seph,
+        button_tcp=None,
+        finger_tcp=None,
+        model="nanos",
+        rendering=RENDER_METHOD.FLUSHED,
+        vnc=None,
+        **_
+    ):
         super().__init__(apdu, seph, model, rendering)
         self._init_notifiers(apdu, seph, button_tcp, finger_tcp, vnc)
 
@@ -28,14 +40,14 @@ class Headless(Display):
 
     def display_status(self, data):
         ret = self.bagl.display_status(data)
-        if MODELS[self.model].name == 'blue':
-            self.screen_update()    # Actually, this method doesn't work
+        if MODELS[self.model].name == "blue":
+            self.screen_update()  # Actually, this method doesn't work
         return ret
 
     def display_raw_status(self, data):
         self.bagl.display_raw_status(data)
-        if MODELS[self.model].name == 'blue':
-            self.screen_update()    # Actually, this method doesn't work
+        if MODELS[self.model].name == "blue":
+            self.screen_update()  # Actually, this method doesn't work
 
     def screen_update(self):
         self.bagl.refresh()
