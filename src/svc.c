@@ -16,8 +16,8 @@
 #define HANDLER_STACK_SIZE (SIGSTKSZ * 4)
 
 static ucontext_t *context;
-static unsigned long *svc_addr;
-static unsigned int n_svc_call;
+static unsigned long *svc_addr = NULL;
+static unsigned int n_svc_call = 0;
 
 bool trace_syscalls;
 
@@ -237,8 +237,6 @@ int patch_svc(void *p, size_t size)
     return -1;
   }
 
-  n_svc_call = 0;
-  svc_addr = NULL;
   addr = p;
   end = addr + size;
   ret = 0;
