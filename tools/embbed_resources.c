@@ -8,6 +8,7 @@
 #include <fcntl.h>
 
 #include "launcher.h"
+#include "vnc_server.h"
 
 static ssize_t write_all(int fd, const void *buf, size_t count)
 {
@@ -62,6 +63,7 @@ static void __attribute__ ((constructor)) create_resources(void);
 void create_resources(void)
 {
   write_file("/tmp/launcher", 0755, build_src_launcher, build_src_launcher_len);
+  write_file("/tmp/vnc_server", 0755, build_vnc_vnc_server, build_vnc_vnc_server_len);
 
   if (setenv("SPECULOS_RESOURCES_PATH", "/tmp", 1) != 0) {
     warn("setenv");
