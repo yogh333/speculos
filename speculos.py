@@ -66,6 +66,9 @@ def run_qemu(s1, s2, app_path, sdk_version, libraries=[], seed=DEFAULT_SEED, deb
     if debug:
         args += [ '-g', '1234', '-singlestep' ]
 
+    if os.getenv("SPECULOS_RESOURCES_PATH"):
+        launcher_path = os.path.join(os.getenv("SPECULOS_RESOURCES_PATH"), "launcher")
+
     args += [ launcher_path ]
 
     if trace_syscalls:
