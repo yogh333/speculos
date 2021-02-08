@@ -79,10 +79,12 @@ endif()
 add_library(cmocka-static STATIC SHARED IMPORTED)
 add_dependencies(cmocka-static cmocka)
 
-include_directories(${INSTALL_DIR}/include)
+find_package(CURL REQUIRED)
+
+include_directories(${INSTALL_DIR}/include ${CURL_INCLUDE_DIR})
 link_directories(${INSTALL_DIR}/lib)
 
-link_libraries(ssl crypto dl)
+link_libraries(ssl crypto dl curl)
 
 add_subdirectory(src)
 add_subdirectory(tests/syscalls)

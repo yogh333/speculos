@@ -74,6 +74,9 @@ def run_qemu(s1: socket.socket, s2: socket.socket, args: argparse.Namespace) -> 
     if args.model is not None:
         argv += ['-m', args.model]
 
+    if args.hook_syscalls:
+        argv += [ '-h' ]
+
     argv += [ '-k', str(args.sdk) ]
 
     extra_ram = ''
@@ -151,6 +154,7 @@ if __name__ == '__main__':
     parser.add_argument('--color', default='MATTE_BLACK', choices=list(display.COLORS.keys()), help='Nano color')
     parser.add_argument('-d', '--debug', action='store_true', help='Wait gdb connection to port 1234')
     parser.add_argument('--deterministic-rng', default="", help='Seed the rng with a given value to produce deterministic randomness')
+    parser.add_argument('--hook-syscalls', action='store_true', help='Run custom syscall hooks')
     parser.add_argument('-k', '--sdk', type=str, help='SDK version')
     parser.add_argument('-l', '--library', default=[], action='append', help='Additional library (eg. Bitcoin:app/btc.elf) which can be called through os_lib_call')
     parser.add_argument('--log-level', default=[], action='append', help='Configure the logger levels (eg. usb:DEBUG), can be specified multiple times')

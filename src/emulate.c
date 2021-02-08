@@ -15,8 +15,13 @@
 #include "bolos_syscalls_1.5.h"
 
 int emulate(unsigned long syscall, unsigned long *parameters,
-            unsigned long *ret, bool verbose, sdk_version_t sdk_version)
+            unsigned long *ret, bool verbose, bool hook,
+            sdk_version_t sdk_version)
 {
+  if (hook) {
+    return hook_syscall(syscall, parameters, ret, verbose, sdk_version);
+  }
+
   int retid;
   switch (sdk_version) {
   case SDK_NANO_X_1_2:

@@ -19,6 +19,7 @@ static ucontext_t *context;
 static unsigned long *svc_addr;
 static unsigned int n_svc_call;
 
+bool hook_syscalls;
 bool trace_syscalls;
 
 void save_current_context(struct sigcontext *sigcontext)
@@ -124,7 +125,7 @@ static void sigill_handler(int sig_no, siginfo_t *UNUSED(info), void *vcontext)
   update_svc_stack(true);
 
   ret = 0;
-  retid = emulate(syscall, parameters, &ret, trace_syscalls, sdk_version);
+  retid = emulate(syscall, parameters, &ret, trace_syscalls, hook_syscalls, sdk_version);
 
   /* handle the os_lib_call syscall specially since it modifies the context
    * directly */

@@ -38,8 +38,12 @@ struct app_s;
 #endif
 #endif
 
+int hook_syscall(unsigned long syscall, unsigned long *parameters,
+                 unsigned long *ret, bool verbose,
+                 sdk_version_t sdk_version);
 int emulate(unsigned long syscall, unsigned long *parameters,
-            unsigned long *ret, bool verbose, unsigned int sdk_version);
+            unsigned long *ret, bool verbose, bool hook,
+            unsigned int sdk_version);
 int emulate_common(unsigned long syscall, unsigned long *parameters,
                    unsigned long *ret, bool verbose);
 

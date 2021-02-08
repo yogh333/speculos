@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+extern bool hook_syscalls;
 extern bool trace_syscalls;
 
 int patch_svc(void *p, size_t size);

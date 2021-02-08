@@ -30,6 +30,7 @@ add_library(emu
         emulate_1.5.c
         emulate_1.6.c
         emulate_blue_2.2.5.c
+        hook_syscalls.c
         svc.c)
 
 add_dependencies(emu openssl)

@@ -418,10 +418,11 @@ static sdk_version_t str2sdkver(char *arg)
 static void usage(char *argv0)
 {
   fprintf(stderr,
-          "Usage: %s [-t] [-r <rampage:ramsize> -k <sdk_version>] <app.elf> "
+          "Usage: %s [-h] [-t] [-r <rampage:ramsize> -k <sdk_version>] <app.elf> "
           "[libname:lib.elf:0x1000:0x9fc0:0x20001800:0x1800 ...]\n",
           argv0);
   fprintf(stderr, "\n\
+  -h                    Hook syscalls\n\
   -r <rampage:ramsize>: Address and size of extra ram (both in hex) to map app.elf memory.\n\
   -m <model>:           Optional string representing the device model being emula-\n\
                         ted. Currently supports \"nanos\", \"nanox\" and \"blue\".\n\
@@ -434,6 +435,7 @@ int main(int argc, char *argv[])
   hw_model_t model = MODEL_NANO_S;
   int opt;
 
+  hook_syscalls = false;
   trace_syscalls = false;
   sdk_version = SDK_NANO_S_1_5;
   model = MODEL_NANO_S;
@@ -443,8 +445,11 @@ int main(int argc, char *argv[])
 
   fprintf(stderr, "[*] speculos launcher revision: " GIT_REVISION "\n");
 
-  while ((opt = getopt(argc, argv, "tr:s:m:k:")) != -1) {
+  while ((opt = getopt(argc, argv, "htr:s:m:k:")) != -1) {
     switch (opt) {
+    case 'h':
+      hook_syscalls = true;
+      break;
     case 'k':
       sdk_version = str2sdkver(optarg);
       break;

@@ -63,7 +63,7 @@ void test_os_global_pin_is_validated(void **UNUSED(state))
     unsigned long parameters[] = {};
     long unsigned int ret;
 
-    emulate(test->syscall, parameters, &ret, false, test->sdk_version);
+    emulate(test->syscall, parameters, &ret, false, false, test->sdk_version);
     assert_int_equal(ret, test->expected);
   }
 }
