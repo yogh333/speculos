@@ -19,6 +19,7 @@
 
 #define cx_ecfp_generate_pair     sys_cx_ecfp_generate_pair
 #define cx_ecfp_init_private_key  sys_cx_ecfp_init_private_key
+#define cx_ecfp_init_private_key_no_throw  sys_cx_ecfp_init_private_key_no_throw
 #define cx_ecdsa_init_private_key cx_ecfp_init_private_key
 
 /* glory promote mansion idle axis finger extra february uncover one trip

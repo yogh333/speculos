@@ -149,6 +149,12 @@ int emulate_common(unsigned long syscall, unsigned long *parameters,
            unsigned int,            key_len,
            cx_ecfp_private_key_t *, key);
 
+  SYSCALL4(cx_ecfp_init_private_key_no_throw, "(0x%x, %p, %u, %p)",
+           cx_curve_t,              curve,
+           const uint8_t *,         raw_key,
+           unsigned int,            key_len,
+           cx_ecfp_private_key_t *, key);
+
   SYSCALL4(cx_ecfp_init_public_key, "(0x%x, %p, %u, %p)",
            cx_curve_t,              curve,
            const uint8_t *,         raw_key,

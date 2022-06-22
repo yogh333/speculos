@@ -47,9 +47,6 @@ enum cx_curve_e {
   /* ANSSI P256 */
   CX_CURVE_FRP256V1,
 
-  /* STARK */
-  CX_CURVE_Stark256,
-
   /* BLS12-381 G1 curve */
   CX_CURVE_BLS12_381_G1,
 
@@ -68,6 +65,9 @@ enum cx_curve_e {
 
   CX_CURVE_TWISTED_EDWARD_END,
   /** High limit (not included) of Twister Edward  curve ID */
+
+  /* STARK */
+  CX_CURVE_Stark256 = 0x51,
 
   /* ----------------------- */
   /* --- Type Montgomery --- */
@@ -131,6 +131,9 @@ enum cx_curve_e {
   CX_CURVE_BrainPoolP512R1 = 0x38,
 
   CX_CURVE_BLS12_381_G1 = 0x39,
+
+  /* STARK */
+  CX_CURVE_Stark256 = 0x51,
 
   /** High limit (not included) of Weierstrass curve ID */
   CX_CURVE_WEIERSTRASS_END = 0x6F,
